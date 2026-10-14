@@ -40,8 +40,8 @@ struct CoverArtwork: View {
         if let data = track?.artwork, let image = UIImage(data: data) {
           Image(uiImage: image)
             .resizable()
-            .scaledToFill()
             .widgetAccentedRenderingMode(.fullColor)
+            .scaledToFill()
         } else {
           ZStack {
             LinearGradient(colors: [.white.opacity(0.24), .white.opacity(0.06)],
@@ -100,7 +100,9 @@ struct PlaybackControls: View {
 
 struct NowPlayingView: View {
   let entry: MusicEntry
-  @Environment(\.widgetFamily) private var family
+  var familyOverride: WidgetFamily? = nil
+  @Environment(\.widgetFamily) private var environmentFamily
+  private var family: WidgetFamily { familyOverride ?? environmentFamily }
 
   var body: some View {
     content
@@ -195,7 +197,9 @@ struct NowPlayingView: View {
 
 struct RecentlyPlayedView: View {
   let entry: MusicEntry
-  @Environment(\.widgetFamily) private var family
+  var familyOverride: WidgetFamily? = nil
+  @Environment(\.widgetFamily) private var environmentFamily
+  private var family: WidgetFamily { familyOverride ?? environmentFamily }
 
   private var items: [WidgetTrack] { entry.snapshot.recent }
 

@@ -26,12 +26,12 @@ final class WidgetPlaybackPublisher: NSObject, MusicPlayable {
 
   @objc private func accountChanged() { publish(force: true) }
 
-  private func thumbnail(path: String?) -> Data? {
+  private func thumbnail(path: String?, maximumSize: Int) -> Data? {
     guard let path,
           let source = CGImageSourceCreateWithURL(URL(fileURLWithPath: path) as CFURL, nil),
           let image = CGImageSourceCreateThumbnailAtIndex(source, 0, [
             kCGImageSourceCreateThumbnailFromImageAlways: true,
-            kCGImageSourceThumbnailMaxPixelSize: 400,
+            kCGImageSourceThumbnailMaxPixelSize: maximumSize,
             kCGImageSourceCreateThumbnailWithTransform: true,
           ] as CFDictionary)
     else { return nil }
@@ -48,16 +48,22 @@ final class WidgetPlaybackPublisher: NSObject, MusicPlayable {
       serverID: playable.id, accountID: accountID, kind: kind(playable),
       title: playable.isRadio && radio?.isEmpty == false ? radio!.title : playable.title,
       artist: playable.isRadio && radio?.isEmpty == false ? radio!.artist : playable.creatorName,
-      artwork: thumbnail(path: playable.imagePath(setting: preference))
+      artwork: thumbnail(path: playable.imagePath(setting: preference), maximumSize: 1000)
     )
   }
 
   private func recentItem(_ playable: AbstractPlayable, track: WidgetTrack) -> WidgetTrack {
-    guard let album = playable.asSong?.album else { return track }
+    let preference = appDelegate.storage.settings.accounts.getSetting(playable.account?.info)
+      .read.artworkDisplayPreference
+    let artwork = thumbnail(path: playable.imagePath(setting: preference), maximumSize: 360)
+    guard let album = playable.asSong?.album else {
+      return WidgetTrack(id: track.id, serverID: track.serverID, accountID: track.accountID,
+                         kind: track.kind, title: track.title, artist: track.artist, artwork: artwork)
+    }
     return WidgetTrack(
       id: album.objectID.uriRepresentation().absoluteString,
       serverID: album.id, accountID: track.accountID, kind: "album",
-      title: album.name, artist: album.artist?.name ?? track.artist, artwork: track.artwork
+      title: album.name, artist: album.artist?.name ?? track.artist, artwork: artwork
     )
   }
 

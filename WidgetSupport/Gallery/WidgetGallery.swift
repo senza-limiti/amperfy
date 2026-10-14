@@ -25,10 +25,10 @@ struct WidgetGallery: App {
             .font(.system(size: 28, weight: .bold)).foregroundStyle(.white)
           Group {
             if variant.hasPrefix("recent") {
-              let view = RecentlyPlayedView(entry: entry)
+              let view = RecentlyPlayedView(entry: entry, familyOverride: family)
               view.content.background(view.backdrop)
             } else {
-              let view = NowPlayingView(entry: entry)
+              let view = NowPlayingView(entry: entry, familyOverride: family)
               view.content.background(view.backdrop)
             }
           }
@@ -36,7 +36,6 @@ struct WidgetGallery: App {
           .frame(width: family == .systemSmall ? 170 : 364,
                  height: family == .systemLarge ? 382 : 170)
           .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-          .environment(\.widgetFamily, family)
           .shadow(color: .black.opacity(0.2), radius: 16, y: 8)
           Text("Amperfy").font(.system(size: 15)).foregroundStyle(.white.opacity(0.7))
         }
