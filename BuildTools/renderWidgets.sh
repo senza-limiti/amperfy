@@ -4,7 +4,8 @@ cd "$(dirname "$0")/.."
 set -o pipefail
 xcodebuild -project Amperfy.xcodeproj -scheme WidgetGallery \
   -configuration Debug -destination 'generic/platform=iOS Simulator' \
-  -derivedDataPath build/gallery CODE_SIGNING_ALLOWED=NO build \
+  -derivedDataPath build/gallery CODE_SIGNING_ALLOWED=NO ARCHS=arm64 ONLY_ACTIVE_ARCH=YES \
+  OTHER_SWIFT_FLAGS='$(inherited) -Xfrontend -warn-long-expression-type-checking=200 -Xfrontend -warn-long-function-bodies=500' build \
   2>&1 | tee build-gallery.log
 
 simulator_id=$(xcrun simctl list devices available -j | python3 -c '

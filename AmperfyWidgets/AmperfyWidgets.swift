@@ -234,7 +234,9 @@ struct RecentlyPlayedView: View {
 
   private func small(size: CGSize) -> some View {
     let item = items[0]
-    let coverSize = max(48, min(size.width - 64, size.height - 76))
+    let availableWidth: CGFloat = size.width - 64
+    let availableHeight: CGFloat = size.height - 76
+    let coverSize: CGFloat = max(48, min(availableWidth, availableHeight))
     return VStack(alignment: .leading, spacing: 8) {
       HStack(alignment: .top) {
         Button(intent: play(item)) {
@@ -263,8 +265,12 @@ struct RecentlyPlayedView: View {
     let large = family == .systemLarge
     let headerHeight: CGFloat = large ? min(108, size.height * 0.33) : 32
     let rows: CGFloat = large ? 2 : 1
-    let coverSize = max(24, min((size.width - 32 - 30) / 4,
-                              (size.height - 32 - headerHeight - 14 - (rows - 1) * 10) / rows))
+    let availableWidth: CGFloat = size.width - 62
+    let availableHeight: CGFloat = size.height - 46 - headerHeight
+    let gapHeight: CGFloat = (rows - 1) * 10
+    let columnWidth: CGFloat = availableWidth / 4
+    let rowHeight: CGFloat = (availableHeight - gapHeight) / rows
+    let coverSize: CGFloat = max(24, min(columnWidth, rowHeight))
     let coverCount = large ? 8 : 4
     let featured = items[0]
     return VStack(alignment: .leading, spacing: 14) {
