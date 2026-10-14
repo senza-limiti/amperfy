@@ -30,6 +30,7 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>amperfy</string>
+				<string>amperfy-widgets</string>
 			</array>
 		</dict>
 	</array>

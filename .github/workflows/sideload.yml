@@ -1,0 +1,65 @@
+name: Build Amperfy with Widgets
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [master, widgets]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: amperfy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: macos-26
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v5
+      - name: Select Xcode 26
+        run: |
+          xcode_path=$(python3 - <<'PY'
+          import glob, re
+          paths = glob.glob('/Applications/Xcode_26*.app')
+          if not paths:
+              raise SystemExit('Xcode 26 is not installed on this runner')
+          print(max(paths, key=lambda p: tuple(map(int, re.findall(r'\d+', p)))))
+          PY
+          )
+          sudo xcode-select -s "$xcode_path/Contents/Developer"
+          xcodebuild -version
+      - name: Test widget history, account isolation, and snapshot storage
+        run: swift test --package-path WidgetSupport
+      - name: Render all six widget layouts in the simulator
+        run: bash BuildTools/renderWidgets.sh
+      - name: Compile app and widgets for the simulator
+        run: |
+          set -o pipefail
+          xcodebuild -project Amperfy.xcodeproj -scheme AmperfySideload \
+            -configuration Debug -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build/simulator CODE_SIGNING_ALLOWED=NO build \
+            2>&1 | tee build-simulator.log
+      - name: Build IPA for SideStore or AltStore
+        run: |
+          set -o pipefail
+          bash BuildTools/buildSideload.sh 2>&1 | tee build-device.log
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Amperfy-Widgets-IPA
+          path: build/Amperfy-Widgets.ipa
+          if-no-files-found: error
+          retention-days: 14
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: widget-previews
+          path: build/widget-previews/*.png
+          retention-days: 14
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: build-logs
+          path: build-*.log
+          retention-days: 7

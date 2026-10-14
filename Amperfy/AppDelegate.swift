@@ -128,6 +128,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
   var sleepTimer: Timer?
 
+  lazy var widgetPublisher = WidgetPlaybackPublisher()
+
   var isKeepScreenAlive: Bool {
     get { UIApplication.shared.isIdleTimerDisabled }
     set { UIApplication.shared.isIdleTimerDisabled = newValue }
@@ -271,6 +273,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     configureBackgroundFetch()
     configureNotificationHandling()
     initEventLogger()
+    widgetPublisher.start()
 
     guard let activeAccountInfo = appDelegate.storage.settings.accounts.active else {
       return true
